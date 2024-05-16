@@ -1,6 +1,7 @@
 <?php
 
 use app\core\form\Form;
+use app\core\Application;
 
 $form = new Form();
 
@@ -24,6 +25,7 @@ $form = new Form();
                     <tr>
                         <th>#</th>
                         <th>Title</th>
+                        <th>Content</th>
                         <th>Created At</th>
                         <th>Actions</th>
                     </tr>
@@ -35,15 +37,18 @@ $form = new Form();
                             <tr>
                                 <td><?php echo  $blog->id; ?></td>
                                 <td><?php echo  $blog->title; ?></td>
+                                <td><?php echo  $blog->content; ?></td>
                                 <td><?php echo  $blog->created_at; ?></td>
-                                <td>
-                                    <a href="/blogs/edit?id=<?php echo $blog->id; ?>" class="btn btn-secondary">Edit</a>
-                                    <form action="/blogs/delete" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this blog?');">
-                                        <input type="hidden" name="id" value="<?php echo $blog->id; ?>">
-                                        <button type="submit" class="btn btn-danger">Delete</button>
-                                    </form>
+                                <?php  if (!Application::isGuest()): ?>
+                                        <td>
+                                            <a href="/blogs/edit?id=<?php echo $blog->id; ?>" class="btn btn-secondary">Edit</a>
+                                            <form action="/blogs/delete" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this blog?');">
+                                                <input type="hidden" name="id" value="<?php echo $blog->id; ?>">
+                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                            </form>
 
-                                </td>
+                                        </td>
+                                <?php endif; ?>
                             </tr>
                         <?php endforeach; ?>
                     <?php else : ?>

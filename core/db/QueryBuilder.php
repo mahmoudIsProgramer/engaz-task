@@ -1,6 +1,8 @@
 <?php 
 namespace app\core\db;
 
+use app\utils\Logger;
+
 class QueryBuilder
 {
     protected string $table;
@@ -10,9 +12,13 @@ class QueryBuilder
     protected ?int $offset = null;
     protected string $modelClass;
 
+    protected Logger $logger;
+
+    
     public function __construct(string $modelClass)
     {
         $this->modelClass = $modelClass;
+        $this->logger = new Logger(__DIR__ . '/../../logs/app.log');
     }
 
     public function table(string $table): self
@@ -54,10 +60,26 @@ class QueryBuilder
 
         $sql = "SELECT * FROM {$this->table}";
         
-        if (!empty($this->conditions)) {
-            $whereClauses = array_map(fn($col) => "$col = :$col", array_keys($this->conditions));
+        // if (!empty($this->conditions)) {
+        //     $whereClauses = array_map(fn($col) => "$col = :$col", array_keys($this->conditions));
+        //     $sql .= " WHERE " . implode(' AND ', $whereClauses);
+        // }
+
+        $whereClauses = [];
+        foreach ($this->conditions as $col => $val) {
+            // echo $col;
+            if ($col == 'deleted_at' ) {
+                $whereClauses[] = "$col IS :$col";
+                // $whereClauses[] = "deleted_at IS NULL";
+            } else {
+                $whereClauses[] = "$col = :$col";
+            }
+        }
+        if (!empty($whereClauses)) {
             $sql .= " WHERE " . implode(' AND ', $whereClauses);
         }
+       
+        
         
         if ($this->orderBy) {
             $sql .= " " . $this->orderBy;
@@ -84,6 +106,7 @@ class QueryBuilder
         if (isset($this->offset)) {
             $statement->bindValue(':offset', $this->offset, \PDO::PARAM_INT);
         }
+        $this->logger->log('Request Body: ' . $sql );
 
         $statement->execute();
         return $statement->fetchAll(\PDO::FETCH_CLASS, $this->modelClass);

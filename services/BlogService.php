@@ -18,6 +18,7 @@ class BlogService
         
         $offset = ($currentPage - 1) * $perPage;
         $blogs = Blog::query()
+            ->where(['deleted_at'=>null])
             ->orderBy('id', 'DESC')
             ->limit($perPage)
             ->offset($currentPage, $perPage)
@@ -78,13 +79,12 @@ class BlogService
         return $blog;
     }
 
-    public function deleteBlog(int $id): bool
+    
+    public function deleteBlog(int $id):bool
     {
         $blog = Blog::findOne(['id' => $id]);
-        if (!$blog) {
-            return false;
-        }
-
-        return $blog->delete();
+        $blog->deleted_at = date('Y-m-d H:i:s');
+        $blog->update();
+        return true;
     }
 }
